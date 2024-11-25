@@ -1,0 +1,73 @@
+
+    
+    
+    - name: "Install ClamAV yum packages"
+      yum:
+        name:
+          - clamav
+          - clamd
+          - clamav-server
+          - clamav-data
+          - clamav-update
+          - clamav-filesystem
+          - clamav-scanner-systemd
+          - clamav-devel
+          - clamav-lib
+          - clamav-server-systemd
+        state: present
+      become: yes
+      become_user: root
+
+    - name: Update freshclam database
+      shell: sudo chmod -R 775 /var/lib/clamav
+      become_user: root
+
+    - name: Transfer clamd conf file
+      copy:
+        src: "{{ansible_roles_path}}/files/clamav/scan.conf"
+        dest: /etc/clamd.d/
+        mode: 0755
+      become_user: root
+
+    - name: Transfer freshclam conf file
+      copy:
+        src: "{{ansible_roles_path}}/files/clamav/freshclam.conf"
+        dest: /etc/
+        mode: 0755
+      become_user: root
+
+    - name: Create freshclam log file
+      command: sudo touch /var/log/freshclam.log
+      become_user: root
+
+    - name: Chg permission for freshclam log file
+      command: sudo chown -R root:clamupdate /var/log/freshclam.log
+      become_user: root
+
+    - name: Chg permission for log file
+      command: sudo chmod -R 775 /var/log/freshclam.log
+      become_user: root
+
+    - name: Create clamdscan log file
+      command: sudo touch /var/log/clamdscan.log
+      become_user: root
+
+    - name: Chg permission for clamdscan log file
+      command: sudo chmod -R 775 /var/log/clamdscan.log
+      become_user: root
+
+    - name: Chg permission for clamdscan log file
+      command: sudo chown -R ansible-c:root /var/log/clamdscan.log
+      become_user: root
+
+    - name: Update freshclam database
+      shell: sudo freshclam
+      become_user: root
+
+    - name: Eanble Service
+      command: systemctl enable --now clamd@scan
+      become_user: root
+
+    - name: Start Service
+      command: sudo service clamd@scan restart
+      become_user: root
